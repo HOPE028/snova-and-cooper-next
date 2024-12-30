@@ -152,7 +152,7 @@ export default function UploadPage() {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             className='block w-full rounded p-2 mb-4 text-black bg-pink-50 border border-rose-900 focus:outline-none focus:ring-2 focus:ring-rose-500'
-            placeholder='Say something about this file...'
+            placeholder='And the caption is...'
           />
 
           {/* Checkbox for Pets Plus */}

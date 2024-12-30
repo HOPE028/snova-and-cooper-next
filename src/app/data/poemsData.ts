@@ -11,6 +11,58 @@ export interface PoemItem {
 // You can also add an 'img' field if you'd like an image for each poem.
 export const poemsData: PoemItem[] = [
   {
+    id: 'Independance',
+    title: 'Independance',
+    text: `It has been almost three years
+   
+Since the fateful day I met you
+
+Not a day goes by that I am not grateful
+
+To have asked you to dance
+
+The same day I met you
+
+In this time, we have grown
+
+Distant dreams have become our new reality
+
+Now you have your own car
+
+And so do I
+
+We go to restaurants
+
+Late at night
+
+We watch shows together
+
+And we cuddle in bed at every opportunity
+
+Not many limiations remain these days
+
+And I can't believe that we made it
+
+This was the promise land I couldn't image getting to
+
+And now that we are here, I am star stuck by what we can do.
+
+The last three years haven't been easy
+
+But they have been the best three years of my life
+
+All thanks to you, Artemis
+
+We stayed patient
+
+And now enjoy the reward
+
+Of our independence
+
+I love you.`,
+    img: '/Sunset-Independence.jpg',
+  },
+  {
     id: 'intense',
     title: 'Love: noun - an intense feeling of deep affection',
     text: `Intense. You make me strive to be a better man.
