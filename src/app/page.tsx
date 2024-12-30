@@ -1,101 +1,159 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Navbar from '../components/Navbar'
+import { useAuth } from '../contexts/AuthContext'
+import { useLazyGetImagesQuery } from '../services/api'
+import Footer from '@/components/Footer'
+import { ImageDoc } from '@/models/Models'
+
+export default function Gallery() {
+  const [images, setImages] = useState<ImageDoc[]>([])
+  const [lastDoc, setLastDoc] = useState<string | undefined>(undefined)
+  const [getImages, { isLoading, isError }] = useLazyGetImagesQuery()
+  const [loading, setLoading] = useState(false)
+
+  // 1) New local state for FurryFriends+
+  const [furryFriendsPlus, setFurryFriendsPlus] = useState(false)
+
+  const fetchImages = async (petsPlusJustEnabled: boolean = false) => {
+    setLoading(true)
+
+    // 2) Build a param string. If we have lastDoc, append it.
+    //    If furryFriendsPlus is true, also add petsPlus=true.
+    let param = ''
+    if (lastDoc && !petsPlusJustEnabled) {
+      param = `lastDoc=${encodeURIComponent(lastDoc)}`
+    }
+    if (furryFriendsPlus || petsPlusJustEnabled) {
+      // If we already have lastDoc in `param`, append with '&'.
+      if (param) {
+        param += '&petsPlus=true'
+      } else {
+        param = 'petsPlus=true'
+      }
+    }
+
+    // 3) Fire off the RTK Query with this param
+    const result = await getImages(param)
+
+    if (result.isSuccess && result.data) {
+      const fetchedImages = result.data.data.newImages
+      setImages((prevImages) => {
+        // Filter out duplicates by ID
+        const uniqueNew = fetchedImages.filter(
+          (img) => !prevImages.some((existing) => existing.id === img.id)
+        )
+        return [...prevImages, ...uniqueNew]
+      })
+      setLastDoc(result.data.data.lastDoc)
+    }
+
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchImages()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 4) Whenever user toggles FurryFriends+, reset and refetch from scratch
+  const handleToggleFurryFriends = (checked: boolean) => {
+    setFurryFriendsPlus(checked)
+
+    if (checked) {
+      // Reset images & pagination
+      setImages([])
+      setLastDoc(undefined)
+
+      fetchImages(true)
+    }
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className='min-h-screen bg-rose-950'>
+      <Navbar />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <h1 className='text-center my-4 text-white text-3xl font-bold'>
+        GALLERY
+      </h1>
+
+      {/* FurryFriends+ Toggle */}
+      {/* FurryFriends+ Toggle */}
+      <div className='flex justify-center mb-4 px-4'>
+        <div
+          onClick={() => handleToggleFurryFriends(!furryFriendsPlus)}
+          className={`border px-4 py-2 rounded cursor-pointer transition-colors duration-300
+      ${
+        furryFriendsPlus
+          ? 'bg-rose-700 border-rose-300 text-white'
+          : 'bg-rose-950 border-gray-700 text-gray-400'
+      }
+    `}
+        >
+          FurryFriends+
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {isError ? (
+        <div className='text-center text-red-600'>
+          Error fetching images. Please try again.
+        </div>
+      ) : (
+        <>
+          <div className='columns-1 sm:columns-2 lg:columns-3 gap-4 mb-4 px-4'>
+            {images
+              .filter((image) => !image.petsPlus || furryFriendsPlus)
+              .map((image) => {
+                const isVideo = image?.fileType?.startsWith('video')
+                return (
+                  <div
+                    key={image.id}
+                    className='break-inside-avoid p-1 box-border w-full bg-pink-400 rounded-lg overflow-hidden shadow-lg mt-4'
+                  >
+                    <Link href={`/image/${image.id}`}>
+                      {isVideo ? (
+                        <div className='relative'>
+                          <video
+                            src={image.url}
+                            muted
+                            className='w-full transition-opacity duration-200 hover:opacity-80'
+                          />
+                          <div className='absolute top-2 left-2 bg-black/50 text-white text-sm px-2 py-1 rounded'>
+                            VIDEO
+                          </div>
+                        </div>
+                      ) : (
+                        <img
+                          src={image.url}
+                          alt={image.caption || 'Image'}
+                          className='w-full transition-opacity duration-200 hover:opacity-80'
+                        />
+                      )}
+                      <h2>{image.caption}</h2>
+                    </Link>
+                  </div>
+                )
+              })}
+          </div>
+
+          {loading && (
+            <div className='flex justify-center mt-4 mb-4'>
+              <div className='animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full'></div>
+            </div>
+          )}
+
+          {!isLoading && (
+            <button
+              onClick={() => fetchImages()}
+              className='block mx-auto mb-5 px-4 py-2 rounded bg-rose-900 text-white text-2xl hover:opacity-90'
+            >
+              Show More
+            </button>
+          )}
+        </>
+      )}
     </div>
-  );
+  )
 }
